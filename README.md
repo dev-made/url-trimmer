@@ -6,7 +6,7 @@
 docker compose up --detach
 ```
 
-### Wait some time (while npm packages will be installed) and visit the [Frontend APP](http://localhost:5173/) dev server
+### Visit the [Frontend APP](http://localhost:5173/) dev server
 
 ### Run tests
 
