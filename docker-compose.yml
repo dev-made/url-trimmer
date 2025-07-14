@@ -1,0 +1,60 @@
+# version: "2.0"
+name: slinks
+
+services:
+  db:
+    container_name: slinks-postgres
+    image: postgres:16.9-alpine
+    # restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - /var/lib/postgresql/data
+      # - ./volumes/db/data:/var/lib/postgresql/data:Z
+      - ./data/postgres.sql:/docker-entrypoint-initdb.d/seed.sql
+    # command: [
+    #     'postgres',
+    #     '-c',
+    #     'log_min_messages=fatal',
+    #   ]
+
+  backend:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./backend
+    container_name: slinks-backend
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - db
+    # volumes:
+    #   - ./backend:/app
+    ports:
+      - 3000:3000
+    command: ['npm', 'run', 'start:dev']
+
+  frontend:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./frontend
+    container_name: slinks-frontend
+    environment:
+      NODE_ENV: development
+    depends_on:
+      - backend
+    # volumes:
+    #   - ./frontend:/app
+    ports:
+      - 5173:5173
+    command: ['npm', 'run', 'dev']
